@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RoK Stats - Tutti i Giocatori</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            background: #1a1e2a;
+            font-family: 'Segoe UI', 'Roboto', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1100px;
+            width: 100%;
+            background: #0f1219;
+            border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            overflow: hidden;
+            border: 1px solid #2a2f3f;
+        }
+        .search-area {
+            padding: 24px;
+            background: #0b0e14;
+            border-bottom: 1px solid #2a2f3f;
+        }
+        .search-box {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        input {
+            flex: 3;
+            padding: 14px 18px;
+            background: #1e2436;
+            border: 1px solid #3a4055;
+            border-radius: 40px;
+            color: #eef2ff;
+            font-size: 1rem;
+            font-family: inherit;
+            outline: none;
+            transition: 0.2s;
+        }
+        input:focus {
+            border-color: #6c5ce7;
+            background: #252c42;
+        }
+        button {
+            flex: 1;
+            background: #6c5ce7;
+            border: none;
+            border-radius: 40px;
+            padding: 14px 20px;
+            font-weight: bold;
+            font-size: 1rem;
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+        }
+        button:hover {
+            background: #5b4bc4;
+            transform: scale(0.98);
+        }
+        .result-area {
+            padding: 24px;
+        }
+        .stats-card {
+            background: #0f1219;
+            border-radius: 20px;
+            border: 1px solid #2a2f3f;
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            font-family: 'Courier New', 'SF Mono', monospace;
+        }
+        th {
+            text-align: left;
+            padding: 16px 12px;
+            background: #131724;
+            color: #b9c3e8;
+            font-weight: 600;
+            border-bottom: 1px solid #2a2f3f;
+            font-size: 0.8rem;
+            letter-spacing: 0.5px;
+        }
+        td {
+            padding: 12px 12px;
+            border-bottom: 1px solid #1e2436;
+            color: #dce5ff;
+        }
+        .stat-label {
+            font-weight: 600;
+            color: #a5b4fc;
+            width: 35%;
+        }
+        .stat-value {
+            font-weight: 500;
+            font-family: monospace;
+        }
+        .positive {
+            color: #4ade80;
+        }
+        .negative {
+            color: #f87171;
+        }
+        .alliance-change {
+            color: #fbbf24;
+        }
+        .player-header {
+            background: #131724;
+            padding: 16px 20px;
+            border-bottom: 1px solid #2a2f3f;
+        }
+        .player-header h2 {
+            margin: 0;
+            font-size: 1.4rem;
+            color: #f0f3ff;
+        }
+        .player-header p {
+            margin: 6px 0 0;
+            color: #8b9bdc;
+            font-size: 0.8rem;
+        }
+        .no-result {
+            text-align: center;
+            padding: 48px 20px;
+            color: #9aa3c2;
+            font-size: 1rem;
+        }
+        .footer-note {
+            font-size: 0.7rem;
+            text-align: center;
+            color: #4a5070;
+            padding: 12px;
+            border-top: 1px solid #1e2436;
+        }
+        .loading {
+            text-align: center;
+            padding: 48px;
+            color: #9aa3c2;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="search-area">
+        <div class="search-box">
+            <input type="text" id="playerNameInput" placeholder="Cerca per Nome o ID..." autocomplete="off">
+            <button id="searchBtn">🔍 CERCA</button>
+        </div>
+    </div>
+    <div class="result-area" id="resultArea">
+        <div class="stats-card">
+            <div class="no-result">
+                ✦ Inserisci un nome o ID per vedere le statistiche ✦
+            </div>
+        </div>
+    </div>
+    <div class="footer-note">
+        Dati basati su scansioni 28/03 → 31/03 | Tutti i giocatori presenti in entrambe le scansioni
+    </div>
+</div>
+
+<script>
+    // --------------------------------------------------------------
+    // DATABASE COMPLETO (tutti i giocatori presenti in entrambe le scansioni)
+    // Generato automaticamente dall'incrocio dei file 1.xlsx e 2.xlsx + 3.xlsx
+    // --------------------------------------------------------------
+    const playersData = [
+        { id: "96640050", name28: "ᴬʳᵗʰᵘʳ", name31: "ᴬʳᵗʰᵘʳ", alliance31: "[KD20]PRIME LEGION", kps28: 1076455521, kps31: 1208685592, deads28: 3894012, deads31: 4575231, t4KillDelta: 9152173, t5KillDelta: 1974476, powerDelta: -3559506, changedAlliance: false },
+        { id: "203820824", name28: "Mighty Thorfin", name31: "Mighty Thorfin", alliance31: "[KD20]PRIME LEGION", kps28: 570368808, kps31: 599358656, deads28: 2064039, deads31: 2084899, t4KillDelta: 1800255, t5KillDelta: 544398, powerDelta: -326180, changedAlliance: false },
+        { id: "209563023", name28: "20 メg4mbl3r", name31: "20 メg4mbl3r", alliance31: "[KD20]PRIME LEGION", kps28: 165356448, kps31: 199742427, deads28: 713549, deads31: 882972, t4KillDelta: 1785028, t5KillDelta: 823948, powerDelta: -507180, changedAlliance: false },
+        { id: "209275477", name28: "昭和 Optimus", name31: "昭和 Optimus", alliance31: "[KD20]PRIME LEGION", kps28: 423245138, kps31: 487460326, deads28: 1579956, deads31: 1649007, t4KillDelta: 4986500, t5KillDelta: 710702, powerDelta: -4134876, changedAlliance: false },
+        { id: "204556807", name28: "Lava777", name31: "Lava777", alliance31: "[KD20]PRIME LEGION", kps28: 1332970543, kps31: 1451993406, deads28: 3616742, deads31: 3772617, t4KillDelta: 9410848, t5KillDelta: 936978, powerDelta: -1318321, changedAlliance: false },
+        { id: "203514054", name28: "ʷ Etna", name31: "ʷ Etna", alliance31: "[WL20]WULCAN Legion", kps28: 261918986, kps31: 310116001, deads28: 3499545, deads31: 3761697, t4KillDelta: 4028496, t5KillDelta: 387660, powerDelta: -1542550, changedAlliance: true },
+        { id: "203637200", name28: "20 メPikta", name31: "20 メPikta", alliance31: "[WL20]WULCAN Legion", kps28: 365508476, kps31: 410140919, deads28: 2658331, deads31: 2945614, t4KillDelta: 3450491, t5KillDelta: 497207, powerDelta: -1053806, changedAlliance: true },
+        { id: "209629543", name28: "Fefe Farmer", name31: "Fefe Farmer", alliance31: "[KD20]PRIME LEGION", kps28: 78137439, kps31: 104919051, deads28: 416771, deads31: 741477, t4KillDelta: 2297220, t5KillDelta: 180025, powerDelta: -770231, changedAlliance: false },
+        { id: "204325788", name28: "ᵀᴳ HổK", name31: "ᵀᴳ HổK", alliance31: "[KD20]PRIME LEGION", kps28: 357560825, kps31: 361017941, deads28: 419222, deads31: 472537, t4KillDelta: 304492, t5KillDelta: 19890, powerDelta: -131688, changedAlliance: false },
+        { id: "207346415", name28: "ᴷᴰTHØR", name31: "ᴷᴰTHØR", alliance31: "[KD20]PRIME LEGION", kps28: 390500109, kps31: 445589453, deads28: 1651844, deads31: 1808485, t4KillDelta: 4451572, t5KillDelta: 503942, powerDelta: -1673266, changedAlliance: false },
+        { id: "206509633", name28: "New Moonᶠʳ", name31: "New Moonᶠʳ", alliance31: "[KD20]PRIME LEGION", kps28: 228839082, kps31: 285290739, deads28: 826341, deads31: 1089883, t4KillDelta: 3335604, t5KillDelta: 729520, powerDelta: -1436831, changedAlliance: false },
+        { id: "206898122", name28: "20 メDragon Diaz", name31: "20 メDragon Diaz", alliance31: "[KD20]PRIME LEGION", kps28: 152299354, kps31: 165601827, deads28: 3044268, deads31: 3084159, t4KillDelta: 944371, t5KillDelta: 91114, powerDelta: -306189, changedAlliance: false },
+        { id: "208465816", name28: "Big Doss", name31: "Big Doss", alliance31: "[KD20]PRIME LEGION", kps28: 204525230, kps31: 228017917, deads28: 1384215, deads31: 1512235, t4KillDelta: 1827580, t5KillDelta: 250484, powerDelta: -896764, changedAlliance: false },
+        { id: "207341609", name28: "GovUli", name31: "GovUli", alliance31: "[KD20]PRIME LEGION", kps28: 283012011, kps31: 320512028, deads28: 1629027, deads31: 1927953, t4KillDelta: 2717235, t5KillDelta: 498748, powerDelta: -400000, changedAlliance: false },
+        { id: "208006204", name28: "ⁿᵛNico", name31: "NicoメMeow", alliance31: "[KD20]PRIME LEGION", kps28: 516014608, kps31: 592507199, deads28: 1697180, deads31: 2091694, t4KillDelta: 5948602, t5KillDelta: 695726, powerDelta: -1428372, changedAlliance: false },
+        { id: "210113875", name28: "Mïtty", name31: "Mïtty", alliance31: "[KD20]PRIME LEGION", kps28: 88008826, kps31: 116346669, deads28: 158399, deads31: 316936, t4KillDelta: 2851858, t5KillDelta: 158513, powerDelta: -542787, changedAlliance: false },
+        { id: "209351472", name28: "ÂLEMDÂR", name31: "ÂLEMDÂR", alliance31: "[KD20]PRIME LEGION", kps28: 169631703, kps31: 188198452, deads28: 1086921, deads31: 1222903, t4KillDelta: 1637636, t5KillDelta: 71708, powerDelta: -398049, changedAlliance: false },
+        { id: "209172159", name28: "昭和 GOKU", name31: "昭和 GOKU", alliance31: "[KD20]PRIME LEGION", kps28: 182789319, kps31: 208817680, deads28: 880403, deads31: 903290, t4KillDelta: 1829643, t5KillDelta: 286476, powerDelta: -358089, changedAlliance: false },
+        { id: "208464696", name28: "Sevrange", name31: "Sevrange", alliance31: "[KD20]PRIME LEGION", kps28: 98839841, kps31: 110681358, deads28: 1038631, deads31: 1241580, t4KillDelta: 871592, t5KillDelta: 146799, powerDelta: -106189, changedAlliance: false },
+        { id: "208516591", name28: "aidivi", name31: "aidivi", alliance31: "[KD20]PRIME LEGION", kps28: 181849781, kps31: 207762162, deads28: 1037425, deads31: 1061617, t4KillDelta: 2250284, t5KillDelta: 186035, powerDelta: -129053, changedAlliance: false },
+        { id: "206841207", name28: "х҉Meoowх҉", name31: "MeowメNico", alliance31: "[KD20]PRIME LEGION", kps28: 431644422, kps31: 491415127, deads28: 801256, deads31: 1106780, t4KillDelta: 4726904, t5KillDelta: 602091, powerDelta: -2695849, changedAlliance: false },
+        { id: "203428818", name28: "Ergastul", name31: "Ergastul", alliance31: "[WL20]WULCAN Legion", kps28: 58990537, kps31: 71601459, deads28: 1832586, deads31: 2010721, t4KillDelta: 982300, t5KillDelta: 134469, powerDelta: -261548, changedAlliance: true },
+        { id: "208865879", name28: "メAzsheraメ", name31: "メAzsheraメ", alliance31: "[KD20]PRIME LEGION", kps28: 123971209, kps31: 176143420, deads28: 1104144, deads31: 1293674, t4KillDelta: 3881427, t5KillDelta: 636371, powerDelta: -487110, changedAlliance: false },
+        { id: "210117957", name28: "SOUTH  KOREA", name31: "SOUTH  KOREA", alliance31: "[=HK=]KOREAz", kps28: 57583894, kps31: 57583894, deads28: 1233456, deads31: 1233456, t4KillDelta: 0, t5KillDelta: 0, powerDelta: 0, changedAlliance: false },
+        { id: "210086475", name28: "GiayEVA", name31: "GiayEVA", alliance31: "-", kps28: 132287818, kps31: 132287818, deads28: 683479, deads31: 683479, t4KillDelta: 0, t5KillDelta: 0, powerDelta: 0, changedAlliance: false },
+        { id: "210072229", name28: "メKïɱ Hưöngメ", name31: "メKïɱ Hưöngメ", alliance31: "[KD20]PRIME LEGION", kps28: 84096443, kps31: 99249158, deads28: 1000132, deads31: 1104355, t4KillDelta: 1207447, t5KillDelta: 137374, powerDelta: -269660, changedAlliance: false },
+        { id: "203330631", name28: "PAK KA DES", name31: "PAK KA DES", alliance31: "[KD20]PRIME LEGION", kps28: 95232662, kps31: 97921926, deads28: 2041124, deads31: 2064967, t4KillDelta: 198848, t5KillDelta: 34869, powerDelta: -178267, changedAlliance: false },
+        { id: "206809427", name28: "宇翔", name31: "宇翔", alliance31: "[KD20]PRIME LEGION", kps28: 121368186, kps31: 128399700, deads28: 1306296, deads31: 1351857, t4KillDelta: 575955, t5KillDelta: 63151, powerDelta: -179067, changedAlliance: false },
+        { id: "209648219", name28: "Martin1003", name31: "Martin1003", alliance31: "[KD20]PRIME LEGION", kps28: 36031358, kps31: 37348847, deads28: 597772, deads31: 605132, t4KillDelta: 42399, t5KillDelta: 44470, powerDelta: -20252, changedAlliance: false },
+        { id: "209588357", name28: "StormZX", name31: "StormZX", alliance31: "[KD20]PRIME LEGION", kps28: 41118682, kps31: 58186781, deads28: 399780, deads31: 447887, t4KillDelta: 1450100, t5KillDelta: 110608, powerDelta: -139217, changedAlliance: false },
+        { id: "206808850", name28: "SHIGAA", name31: "SHIGAA", alliance31: "-", kps28: 85605092, kps31: 85605092, deads28: 714521, deads31: 714521, t4KillDelta: 0, t5KillDelta: 0, powerDelta: 0, changedAlliance: false },
+        { id: "195262063", name28: "20 メHeRmesS", name31: "20 メHeRmesS", alliance31: "[KD20]PRIME LEGION", kps28: 127919863, kps31: 153208199, deads28: 1919725, deads31: 1985301, t4KillDelta: 2111995, t5KillDelta: 207497, powerDelta: -166900, changedAlliance: false },
+        { id: "209457612", name28: "ˣˣyugi BR", name31: "ˣˣyugi BR", alliance31: "[KD20]PRIME LEGION", kps28: 77332444, kps31: 97403225, deads28: 1334535, deads31: 1571372, t4KillDelta: 1589151, t5KillDelta: 207306, powerDelta: -896563, changedAlliance: false },
+        { id: "208952052", name28: "Dėadpool", name31: "Dėadpool", alliance31: "[WL20]WULCAN Legion", kps28: 209300253, kps31: 213803885, deads28: 1112615, deads31: 1147565, t4KillDelta: 369509, t5KillDelta: 40225, powerDelta: -77545, changedAlliance: true },
+        { id: "203401894", name28: "20 メMike 7", name31: "20 メMike 7", alliance31: "[WL20]WULCAN Legion", kps28: 12482705, kps31: 17306390, deads28: 56267, deads31: 137473, t4KillDelta: 456751, t5KillDelta: 12755, powerDelta: -81200, changedAlliance: false },
+        { id: "199163787", name28: "ᶳᶺFelix", name31: "ᶳᶺFelix", alliance31: "[KD20]PRIME LEGION", kps28: 76505027, kps31: 96663885, deads28: 1329158, deads31: 1534705, t4KillDelta: 1284286, t5KillDelta: 341908, powerDelta: -500000, changedAlliance: false },
+        { id: "210101541", name28: "Mëek", name31: "Mëek", alliance31: "[KD20]PRIME LEGION", kps28: 110285388, kps31: 139849265, deads28: 445643, deads31: 722938, t4KillDelta: 2201142, t5KillDelta: 301320, powerDelta: -966350, changedAlliance: false },
+        { id: "209608307", name28: "AltisCorolla", name31: "AltisCorolla", alliance31: "[KD20]PRIME LEGION", kps28: 30366128, kps31: 33568654, deads28: 297607, deads31: 358851, t4KillDelta: 247396, t5KillDelta: 36504, powerDelta: -124684, changedAlliance: false },
+        { id: "209094372", name28: "ᴷᴰTiNNiTuS", name31: "ᴷᴰTiNNiTuS", alliance31: "[KD20]PRIME LEGION", kps28: 52509003, kps31: 64782906, deads28: 214766, deads31: 420697, t4KillDelta: 962157, t5KillDelta: 127250, powerDelta: -258716, changedAlliance: false },
+        { id: "206763903", name28: "EGRoSS", name31: "EGRoSS", alliance31: "[WL20]WULCAN Legion", kps28: 28773028, kps31: 32547989, deads28: 34845, deads31: 313333, t4KillDelta: 179028, t5KillDelta: 99312, powerDelta: -428054, changedAlliance: false },
+        { id: "206884797", name28: "ᶠʳ 100", name31: "ᶠʳ 100", alliance31: "[KD20]PRIME LEGION", kps28: 110858466, kps31: 131235847, deads28: 640319, deads31: 806082, t4KillDelta: 1596841, t5KillDelta: 203195, powerDelta: -393000, changedAlliance: false },
+        { id: "209605160", name28: "ᅠafisy", name31: "ᅠafisy", alliance31: "[KD20]PRIME LEGION", kps28: 175701245, kps31: 190904676, deads28: 460580, deads31: 576280, t4KillDelta: 1414932, t5KillDelta: 42387, powerDelta: -129659, changedAlliance: false },
+        { id: "208407727", name28: "HappyHours", name31: "HappyHours", alliance31: "[WL20]WULCAN Legion", kps28: 1842453, kps31: 1842453, deads28: 112999, deads31: 112999, t4KillDelta: 0, t5KillDelta: 0, powerDelta: 0, changedAlliance: false },
+        { id: "210095543", name28: "20 メMorhas", name31: "20 メMorhas", alliance31: "[KD20]PRIME LEGION", kps28: 38910450, kps31: 57500469, deads28: 303822, deads31: 529502, t4KillDelta: 1352950, t5KillDelta: 251199, powerDelta: -429400, changedAlliance: false },
+        { id: "210097417", name28: "Tshadow", name31: "Tshadow", alliance31: "[ WP_]WorldPleace vietnam", kps28: 64752394, kps31: 64752394, deads28: 716006, deads31: 716006, t4KillDelta: 0, t5KillDelta: 0, powerDelta: 0, changedAlliance: false },
+        { id: "209664929", name28: "Muriono Hachi", name31: "Muriono Hachi", alliance31: "[KD20]PRIME LEGION", kps28: 46169510, kps31: 62337324, deads28: 811294, deads31: 1140048, t4KillDelta: 1287850, t5KillDelta: 140266, powerDelta: -1192314, changedAlliance: false },
+        { id: "209601090", name28: "20 メAkumaNo1", name31: "20 メAkumaNo1", alliance31: "[KD20]PRIME LEGION", kps28: 118981035, kps31: 142373669, deads28: 534822, deads31: 591100, t4KillDelta: 2118380, t5KillDelta: 854344, powerDelta: -874118, changedAlliance: false },
+        { id: "209542493", name28: "ᴬʳ LƤ", name31: "ᴬʳ LƤ", alliance31: "[KD20]PRIME LEGION", kps28: 49049401, kps31: 53714443, deads28: 688025, deads31: 711604, t4KillDelta: 432847, t5KillDelta: 16568, powerDelta: -142464, changedAlliance: false },
+        { id: "209685555", name28: "20 メNmt", name31: "20 メNmt", alliance31: "[KD20]PRIME LEGION", kps28: 32463632, kps31: 37896521, deads28: 233389, deads31: 336827, t4KillDelta: 464544, t5KillDelta: 37793, powerDelta: -202000, changedAlliance: false },
+        { id: "209822511", name28: "20 メ Táo Xanh", name31: "20 メ Táo Xanh", alliance31: "[KD20]PRIME LEGION", kps28: 38477691, kps31: 38477691, deads28: 143342, deads31: 143342, t4KillDelta: 0, t5KillDelta: 0, powerDelta: 0, changedAlliance: false },
+        { id: "207066538", name28: "Skipped", name31: "Lazycat", alliance31: "[KD20]PRIME LEGION", kps28: 27314098, kps31: 30093787, deads28: 7, deads31: 408746, t4KillDelta: 253062, t5KillDelta: 12356, powerDelta: -33769, changedAlliance: false },
+        { id: "209753877", name28: "20 メPháGame", name31: "20 メPháGame", alliance31: "[KD20]PRIME LEGION", kps28: 90301802, kps31: 99258716, deads28: 253494, deads31: 293580, t4KillDelta: 752497, t5KillDelta: 70475, powerDelta: -224000, changedAlliance: false },
+        { id: "209068562", name28: "20 メMïūMïū", name31: "20 メMïūMïū", alliance31: "[KD20]PRIME LEGION", kps28: 60529907, kps31: 69490243, deads28: 345618, deads31: 379349, t4KillDelta: 841882, t5KillDelta: 22392, powerDelta: -225000, changedAlliance: false },
+        { id: "210059131", name28: "GiaTrường", name31: "GiaTrường", alliance31: "[KD20]PRIME LEGION", kps28: 57385135, kps31: 81670130, deads28: 251211, deads31: 428835, t4KillDelta: 1936391, t5KillDelta: 229214, powerDelta: -644756, changedAlliance: false },
+        { id: "210088745", name28: "20 メKeo", name31: "20 メKeo", alliance31: "-", kps28: 18662894, kps31: 18662894, deads28: 86787, deads31: 86787, t4KillDelta: 0, t5KillDelta: 0, powerDelta: 0, changedAlliance: false },
+        { id: "209762892", name28: "valiosocity", name31: "valiosocity", alliance31: "[KD20]PRIME LEGION", kps28: 2687615, kps31: 4739656, deads28: 992869, deads31: 992869, t4KillDelta: 147552, t5KillDelta: 28798, powerDelta: -100000, changedAlliance: false },
+        { id: "207840929", name28: "ᴳᴷFatBastar", name31: "ᴳᴷFatBastar", alliance31: "[KD20]PRIME LEGION", kps28: 32765324, kps31: 38777371, deads28: 130634, deads31: 194977, t4KillDelta: 503129, t5KillDelta: 48577, powerDelta: -100000, changedAlliance: false },
+        { id: "209773280", name28: "ᴬʳ Merkid", name31: "ᴬʳ Merkid", alliance31: "-", kps28: 58072310, kps31: 58072310, deads28: 174368, deads31: 174368, t4KillDelta: 0, t5KillDelta: 0, powerDelta: 0, changedAlliance: false },
+        { id: "209540660", name28: "20 メ15th2", name31: "20 メ15th2", alliance31: "[KD20]PRIME LEGION", kps28: 62258380, kps31: 68227963, deads28: 774333, deads31: 994014, t4KillDelta: 465523, t5KillDelta: 42836, powerDelta: -300000, changedAlliance: false },
+        { id: "207240650", name28: "ᶠʳKaladriel", name31: "ᶠʳKaladriel", alliance31: "[KD20]PRIME LEGION", kps28: 26130014, kps31: 32483315, deads28: 640922, deads31: 773719, t4KillDelta: 519536, t5KillDelta: 57634, powerDelta: -229939, changedAlliance: false },
+        { id: "209545201", name28: "20 メTomTomate", name31: "20 メTomTomate", alliance31: "-", kps28: 10186230, kps31: 10186230, deads28: 113691, deads31: 113691, t4KillDelta: 0, t5KillDelta: 0, powerDelta: 0, changedAlliance: false },
+        { id: "206632935", name28: "ᵂᴾGilgamash", name31: "ᵂᴾGilgamash", alliance31: "[WL20]WULCAN Legion", kps28: 17218839, kps31: 20540227, deads28: 321864, deads31: 565286, t4KillDelta: 277115, t5KillDelta: 27432, powerDelta: -300000, changedAlliance: false },
+        { id: "209570886", name28: "CHi Ü", name31: "CHi Ü", alliance31: "[KD20]PRIME LEGION", kps28: 87166753, kps31: 87582643, deads28: 243891, deads31: 296599, t4KillDelta: 155894, t5KillDelta: 2665, powerDelta: -150000, changedAlliance: false },
+        { id: "209528725", name28: "CynaXxX", name31: "CynaXxX", alliance31: "[KD20]PRIME LEGION", kps28: 56836306, kps31: 66574092, deads28: 649640, deads31: 694953, t4KillDelta: 260834, t5KillDelta: 97416, powerDelta: -305064, changedAlliance: false },
+        { id: "209598672", name28: "20 メBắp", name31: "20 メBắp", alliance31: "[KD20]PRIME LEGION", kps28: 62267361, kps31: 62683331, deads28: 268885, deads31: 268885, t4KillDelta: 356326, t5KillDelta: 2730, powerDelta: -100000, changedAlliance: false },
+        { id: "209286934", name28: "Send Nudez", name31: "Send Nudez", alliance31: "[KD20]PRIME LEGION", kps28: 275556472, kps31: 287136776, deads28: 302739, deads31: 399520, t4KillDelta: 1012769, t5KillDelta: 71079, powerDelta: -327200, changedAlliance: false },
+        { id: "209530219", name28: "ᴱᵂSóiGià", name31: "ᴱᵂSóiGià", alliance31: "[KD20]PRIME LEGION", kps28: 55049013, kps31: 60176813, deads28: 917753, deads31: 917753, t4KillDelta: 512780, t5KillDelta: 0, powerDelta: -150000, changedAlliance: false },
+        { id: "209534056", name28: "20 メElenhord", name31: "20 メElenhord", alliance31: "[KD20]PRIME LEGION", kps28: 28293424, kps31: 37921066, deads28: 75516, deads31: 172499, t4KillDelta: 800721, t5KillDelta: 69360, powerDelta: -115676, changedAlliance: false },
+        { id: "209231223", name28: "Newden", name31: "Newden", alliance31: "-", kps28: 7867485, kps31: 7867485, deads28: 96316, deads31: 96316, t4KillDelta: 0, t5KillDelta: 0, powerDelta: 0, changedAlliance: false },
+        { id: "210121376", name28: "ᵂᴾCafe Đá", name31: "ᵂᴾCafe Đá", alliance31: "[KD20]PRIME LEGION", kps28: 32628460, kps31: 36846838, deads28: 297263, deads31: 327398, t4KillDelta: 404367, t5KillDelta: 7484, powerDelta: -100000, changedAlliance: false },
+        { id: "209426177", name28: "ʏɢAwprant", name31: "ʏɢAwprant", alliance31: "[KD20]PRIME LEGION", kps28: 66167307, kps31: 81051858, deads28: 514683, deads31: 573219, t4KillDelta: 1192651, t5KillDelta: 137542, powerDelta: -215100, changedAlliance: false },
+        { id: "209699690", name28: "Çağdaş62", name31: "Çağdaş62", alliance31: "[KD20]PRIME LEGION", kps28: 71230492, kps31: 102016110, deads28: 689863, deads31: 858247, t4KillDelta: 2624375, t5KillDelta: 226325, powerDelta: -474665, changedAlliance: false },
+        { id: "209026230", name28: "20 メ Dark Dahli", name31: "20 メ Dark Dahli", alliance31: "[KD20]PRIME LEGION", kps28: 11743321, kps31: 21144473, deads28: 120568, deads31: 186951, t4KillDelta: 814307, t5KillDelta: 49586, powerDelta: -80000, changedAlliance: false },
+        { id: "209583815", name28: "Lucifereffect09", name31: "Lucifereffect09", alliance31: "[KD20]PRIME LEGION", kps28: 32494684, kps31: 46692993, deads28: 200315, deads31: 211014, t4KillDelta: 656525, t5KillDelta: 375351, powerDelta: -128245, changedAlliance: false },
+        { id: "209138506", name28: "Indovakel", name31: "Indovakel", alliance31: "[WL20]WULCAN Legion", kps28: 12147236, kps31: 15117163, deads28: 185265, deads31: 185265, t4KillDelta: 176000, t5KillDelta: 60897, powerDelta: -100000, changedAlliance: false },
+        { id: "205990261", name28: "Derka bicici", name31: "Derka bicici", alliance31: "[KD20]PRIME LEGION", kps28: 43913735, kps31: 48503942, deads28: 1127304, deads31: 1158638, t4KillDelta: 411173, t5KillDelta: 11052, powerDelta: -131281, changedAlliance: false },
+        { id: "207197690", name28: "ᶠʳNainggo", name31: "ᶠʳNainggo", alliance31: "[KD20]PRIME LEGION", kps28: 59321480, kps31: 77802188, deads28: 988732, deads31: 1266099, t4KillDelta: 1539028, t5KillDelta: 149247, powerDelta: -888268, changedAlliance: false },
+        { id: "207663348", name28: "义ᵀSenna", name31: "义ᵀSenna", alliance31: "[KD20]PRIME LEGION", kps28: 26816675, kps31: 40086389, deads28: 554486, deads31: 675959, t4KillDelta: 1061995, t5KillDelta: 133985, powerDelta: -299582, changedAlliance: false },
+        { id: "209981701", name28: "メHustle", name31: "メHustle", alliance31: "-", kps28: 117282449, kps31: 117282449, deads28: 669474, deads31: 669474, t4KillDelta: 0, t5KillDelta: 0, powerDelta: 0, changedAlliance: false },
+        { id: "208593932", name28: "ᶲメTaY0メシ", name31: "ᶲメTaY0メシ", alliance31: "-", kps28: 16488349, kps31: 16488349, deads28: 611102, deads31: 611102, t4KillDelta: 0, t5KillDelta: 0, powerDelta: 0, changedAlliance: false },
+        { id: "206610948", name28: "々Rapss14々", name31: "々Rapss14々", alliance31: "[KD20]PRIME LEGION", kps28: 35601797, kps31: 42029507, deads28: 1237244, deads31: 1322764, t4KillDelta: 496467, t5KillDelta: 71274, powerDelta: -200000, changedAlliance: false },
+        { id: "207057427", name28: "GIO lll", name31: "GIO lll", alliance31: "-", kps28: 40010499, kps31: 40010499, deads28: 1311026, deads31: 1311026, t4KillDelta: 0, t5KillDelta: 0, powerDelta: 0, changedAlliance: false },
+        { id: "209622253", name28: "20 メAnh Kiệt", name31: "20 メAnh Kiệt", alliance31: "[KD20]PRIME LEGION", kps28: 13348143, kps31: 14755603, deads28: 315959, deads31: 333381, t4KillDelta: 110463, t5KillDelta: 13395, powerDelta: -50000, changedAlliance: false },
+        { id: "206683852", name28: "ᴳᴴ Yusuf", name31: "ᴳᴴ Yusuf", alliance31: "-", kps28: 82731296, kps31: 82731296, deads28: 825960, deads31: 825960, t4KillDelta: 0, t5KillDelta: 0, powerDelta: 0, changedAlliance: false },
+        { id: "209526966", name28: "20 メSchiavo", name31: "20 メSchiavo", alliance31: "-", kps28: 66179294, kps31: 66179294, deads28: 642664, deads31: 642664, t4KillDelta: 0, t5KillDelta: 0, powerDelta: 0, changedAlliance: false },
+        { id: "208237231", name28: "ᴷˢᴬworrior", name31: "ᴷˢᴬworrior", alliance31: "[KD20]PRIME LEGION", kps28: 19359287, kps31: 25882904, deads28: 135730, deads31: 277124, t4KillDelta: 601070, t5KillDelta: 24715, powerDelta: -100000, changedAlliance: false },
+        { id: "207303192", name28: "Lugu", name31: "Lugu", alliance31: "-", kps28: 22364463, kps31: 22364463, deads28: 257128, deads31: 257128, t4KillDelta: 0, t5KillDelta: 0, powerDelta: 0, changedAlliance: false },
+        { id: "210092616", name28: "20 メEvilGenius", name31: "20 メEvilGenius", alliance31: "[KD20]PRIME LEGION", kps28: 53719773, kps31: 60875301, deads28: 977993, deads31: 1049099, t4KillDelta: 529089, t5KillDelta: 88263, powerDelta: -210000, changedAlliance: false },
+        { id: "206951486", name28: "BringasLB", name31: "BringasLB", alliance31: "[KD20]PRIME LEGION", kps28: 9716237, kps31: 10126797, deads28: 139642, deads31: 139642, t4KillDelta: 7410, t5KillDelta: 16811, powerDelta: -100000, changedAlliance: false },
+        { id: "209644528", name28: "20 メAlanabi", name31: "20 メAlanabi", alliance31: "[KD20]PRIME LEGION", kps28: 25406333, kps31: 26462903, deads28: 112053, deads31: 124743, t4KillDelta: 86084, t5KillDelta: 9711, powerDelta: -50000, changedAlliance: false },
+        { id: "210090076", name28: "віввв", name31: "віввв", alliance31: "[KD20]PRIME LEGION", kps28: 41104664, kps31: 48185998, deads28: 1255330, deads31: 1425882, t4KillDelta: 505362, t5KillDelta: 12684, powerDelta: -200000, changedAlliance: false },
+        { id: "206734938", name28: "Linh Teuowr", name31: "Linh Teuowr", alliance31: "[WL20]WULCAN Legion", kps28: 81926050, kps31: 84024237, deads28: 2376313, deads31: 2392633, t4KillDelta: 199643, t5KillDelta: 4792, powerDelta: -100000, changedAlliance: false },
+        { id: "206590106", name28: "20 メGOUDA", name31: "20 メGOUDA", alliance31: "[KD20]PRIME LEGION", kps28: 26641220, kps31: 29010060, deads28: 392538, deads31: 415058, t4KillDelta: 162561, t5KillDelta: 37050, powerDelta: -100000, changedAlliance: false },
+        { id: "210107841", name28: "ᵃʳᶜVictor", name31: "ᵃʳᶜVictor", alliance31: "[KD20]PRIME LEGION", kps28: 7023665, kps31: 10122297, deads28: 108790, deads31: 108790, t4KillDelta: 119909, t5KillDelta: 84857, powerDelta: -100000, changedAlliance: false },
+        { id: "209602842", name28: "AnTheGia1995", name31: "AnTheGia1995", alliance31: "[WL20]WULCAN Legion", kps28: 5298199, kps31: 5298199, deads28: 377119, deads31: 377119, t4KillDelta: 0, t5KillDelta: 0, powerDelta: 0, changedAlliance: false },
+        { id: "209534945", name28: "20 メ KUKU 父", name31: "20 メ KUKU 父", alliance31: "[KD20]PRIME LEGION", kps28: 44648635, kps31: 47483672, deads28: 414116, deads31: 463300, t4KillDelta: 264396, t5KillDelta: 9121, powerDelta: -100000, changedAlliance: false },
+        { id: "209522959", name28: "ᴱᵂND乂Phuc", name31: "ᴱᵂND乂Phuc", alliance31: "[KD20]PRIME LEGION", kps28: 160600425, kps31: 165310176, deads28: 693655, deads31: 722148, t4KillDelta: 425317, t5KillDelta: 20854, powerDelta: -100000, changedAlliance: false },
+        { id: "206705952", name28: "Pop ice", name31: "Pop ice", alliance31: "[KD20]PRIME LEGION", kps28: 111860640, kps31: 111930930, deads28: 823026, deads31: 823026, t4KillDelta: 70290, t5KillDelta: 0, powerDelta: 0, changedAlliance: false },
+        { id: "206748695", name28: "Imperial Grace", name31: "Imperial Grace", alliance31: "[WL20]WULCAN Legion", kps28: 16565503, kps31: 16565503, deads28: 1108930, deads31: 1108930, t4KillDelta: 0, t5KillDelta: 0, powerDelta: 0, changedAlliance: false },
+        { id: "206741677", name28: "VN x Kakarot", name31: "VN x Kakarot", alliance31: "[KD20]PRIME LEGION", kps28: 42852059, kps31: 48622373, deads28: 451999, deads31: 504551, t4KillDelta: 413182, t5KillDelta: 42272, powerDelta: -200000, changedAlliance: false },
+        { id: "209635643", name28: "ngunhuheo", name31: "ngunhuheo", alliance31: "[KD20]PRIME LEGION", kps28: 29239087, kps31: 29239087, deads28: 1128334, deads31: 1128334, t4KillDelta: 0, t5KillDelta: 0, powerDelta: 0, changedAlliance: false },
+        { id: "210075737", name28: "20 メDzToku", name31: "20 メDzToku", alliance31: "[KD20]PRIME LEGION", kps28: 19099771, kps31: 21025750, deads28: 318816, deads31: 349512, t4KillDelta: 164676, t5KillDelta: 13762, powerDelta: -100000, changedAlliance: false },
+        { id: "209557725", name28: "20 メ Ost1k", name31: "20 メ Ost1k", alliance31: "[KD20]PRIME LEGION", kps28: 9747006, kps31: 17362965, deads28: 309108, deads31: 460053, t4KillDelta: 615000, t5KillDelta: 74000, powerDelta: -150000, changedAlliance: false },
+        { id: "205497206", name28: "KhangKoi", name31: "KhangKoi", alliance31: "-", kps28: 24621269, kps31: 24621269, deads28: 216284, deads31: 216284, t4KillDelta: 0, t5KillDelta: 0, powerDelta: 0, changedAlliance: false },
+        { id: "210077648", name28: "ᴬʳTenlagi", name31: "ᴬʳTenlagi", alliance31: "[KD20]PRIME LEGION", kps28: 9337255, kps31: 13788146, deads28: 176642, deads31: 267785, t4KillDelta: 367037, t5KillDelta: 39026, powerDelta: -100000, changedAlliance: false },
+        { id: "204483325", name28: "MONGOL KHAAN", name31: "MONGOL KHAAN", alliance31: "[KD20]PRIME LEGION", kps28: 17265372, kps31: 23987217, deads28: 349911, deads31: 375566, t4KillDelta: 540611, t5KillDelta: 63804, powerDelta: -100000, changedAlliance: false },
+        { id: "209506976", name28: "ᶜʰgrimmjow69", name31: "ᶜʰgrimmjow69", alliance31: "[WL20]WULCAN Legion", kps28: 17043979, kps31: 17043979, deads28: 1087844, deads31: 1087844, t4KillDelta: 0, t5KillDelta: 0, powerDelta: 0, changedAlliance: false },
+        { id: "206857792", name28: "ᶜʰAlfonsoMS", name31: "ᶜʰAlfonsoMS", alliance31: "[KD20]PRIME LEGION", kps28: 12074567, kps31: 13367437, deads28: 595949, deads31: 596740, t4KillDelta: 69109, t5KillDelta: 5366, powerDelta: -100000, changedAlliance: false },
+        { id: "210116177", name28: "20 メ Jess82", name31: "20 メ Jess82", alliance31: "[KD20]PRIME LEGION", kps28: 15438072, kps31: 19734725, deads28: 203189, deads31: 218025, t4KillDelta: 237995, t5KillDelta: 95053, powerDelta: -100000, changedAlliance: false },
+        { id: "209172755", name28: "RastaLion", name31: "RastaLion", alliance31: "[KD20]PRIME LEGION", kps28: 17977200, kps31: 8588350, deads28: 411128, deads31: 411128, t4KillDelta: -9388850, t5KillDelta: 0, powerDelta: -100000, changedAlliance: false },
+        { id: "209578292", name28: "20 メ Trà Đá", name31: "20 メ Trà Đá", alliance31: "-", kps28: 65568950, kps31: 65568950, deads28: 119992, deads31: 119992, t4KillDelta: 0, t5KillDelta: 0, powerDelta: 0, changedAlliance: false },
+        { id: "205618747", name28: "Buttavent", name31: "Buttavent", alliance31: "-", kps28: 55685390, kps31: 55685390, deads28: 926040, deads31: 926040, t4KillDelta: 0, t5KillDelta: 0, powerDelta: 0, changedAlliance: false },
+        { id: "209254807", name28: "David Nash 1984", name31: "David Nash 1984", alliance31: "[WL20]WULCAN Legion", kps28: 11897503, kps31: 13781593, deads28: 173024, deads31: 246131, t4KillDelta: 129909, t5KillDelta: 67685, powerDelta: -100000, changedAlliance: false },
+        { id: "202481052", name28: "حجاج احمد lj", name31: "حجاج احمد lj", alliance31: "[KD20]PRIME LEGION", kps28: 1351060, kps31: 5825984, deads28: 72715, deads31: 475128, t4KillDelta: 445641, t5KillDelta: 0, powerDelta: -100000, changedAlliance: false },
+        { id: "209522870", name28: "20 メPhrolovaバ", name31: "20 メPhrolovaバ", alliance31: "[KD20]PRIME LEGION", kps28: 97799697, kps31: 106689147, deads28: 753396, deads31: 831563, t4KillDelta: 443287, t5KillDelta: 36138, powerDelta: -200000, changedAlliance: false },
+        { id: "207378138", name28: "20 メboSHter", name31: "20 メboSHter", alliance31: "[KD20]PRIME LEGION", kps28: 30387032, kps31: 34485698, deads28: 538905, deads31: 621127, t4KillDelta: 294395, t5KillDelta: 104180, powerDelta: -150000, changedAlliance: false },
+        { id: "209609858", name28: "20 メPirata", name31: "20 メPirata", alliance31: "[KD20]PRIME LEGION", kps28: 59267032, kps31: 59267032, deads28: 1485923, deads31: 1485923, t4KillDelta: 0, t5KillDelta: 0, powerDelta: 0, changedAlliance: false },
+        { id: "207685538", name28: "RW  Fredjar", name31: "RW  Fredjar", alliance31: "[WL20]WULCAN Legion", kps28: 12704025, kps31: 14008845, deads28: 323251, deads31: 326061, t4KillDelta: 112487, t5KillDelta: 8998, powerDelta: -50000, changedAlliance: false },
+        { id: "209535901", name28: "20 メ LzM亗", name31: "20 メ LzM亗", alliance31: "[KD20]PRIME LEGION", kps28: 89293254, kps31: 132316965, deads28: 526199, deads31: 988173, t4KillDelta: 3230925, t5KillDelta: 523269, powerDelta: -500000, changedAlliance: false },
+        { id: "209522442", name28: "20 メFox", name31: "20 メFox", alliance31: "[KD20]PRIME LEGION", kps28: 31934302, kps31: 35770836, deads28: 509777, deads31: 549066, t4KillDelta: 342452, t5KillDelta: 17618, powerDelta: -100000, changedAlliance: false },
+        { id: "209626849", name28: "20 メZzxzZ", name31: "20 メZzxzZ", alliance31: "[KD20]PRIME LEGION", kps28: 17503198, kps31: 18672466, deads28: 852220, deads31: 873461, t4KillDelta: 104541, t5KillDelta: 6105, powerDelta: -50000, changedAlliance: false },
+        { id: "209527460", name28: "King Min", name31: "King Min", alliance31: "-", kps28: 48963209, kps31: 48963209, deads28: 441173, deads31: 441173, t4KillDelta: 0, t5KillDelta: 0, powerDelta: 0, changedAlliance: false },
+        { id: "208937238", name28: "ArmiNe", name31: "ArmiNe", alliance31: "[WL20]WULCAN Legion", kps28: 12926258, kps31: 12953918, deads28: 125765, deads31: 125765, t4KillDelta: 27660, t5KillDelta: 0, powerDelta: 0, changedAlliance: false },
+        { id: "207992489", name28: "perhaps the nex", name31: "perhaps the nex", alliance31: "[WL20]WULCAN Legion", kps28: 59798511, kps31: 60207331, deads28: 1080964, deads31: 1080964, t4KillDelta: 408820, t5KillDelta: 0, powerDelta: 0, changedAlliance: false },
+        { id: "209600539", name28: "ᴺˣHiasl", name31: "ᴺˣHiasl", alliance31: "[WL20]WULCAN Legion", kps28: 8273011, kps31: 10607945, deads28: 54172, deads31: 151927, t4KillDelta: 231848, t5KillDelta: 768, powerDelta: -100000, changedAlliance: false },
+        { id: "209463814", name28: "Minidoraa", name31: "Minidoraa", alliance31: "[KD20]PRIME LEGION", kps28: 15724292, kps31: 20151121, deads28: 569430, deads31: 706247, t4KillDelta: 340153, t5KillDelta: 50941, powerDelta: -100000, changedAlliance: false },
+        { id: "209601850", name28: "ᴱᵂOld Lupo", name31: "ᴱᵂOld Lupo", alliance31: "[KD20]PRIME LEGION", kps28: 6635583, kps31: 9112783, deads28: 180358, deads31: 186775, t4KillDelta: 167000, t5KillDelta: 40369, powerDelta: -50000, changedAlliance: false },
+        { id: "209523310", name28: "Mag Lacrontte", name31: "Mag Lacrontte", alliance31: "[WL20]WULCAN Legion", kps28: 23573383, kps31: 38331663, deads28: 793512, deads31: 1197800, t4KillDelta: 1212623, t5KillDelta: 128206, powerDelta: -500000, changedAlliance: false },
+        { id: "207377099", name28: "zorkos", name31: "zorkos", alliance31: "[KD20]PRIME LEGION", kps28: 53239258, kps31: 56967166, deads28: 910749, deads31: 924113, t4KillDelta: 315560, t5KillDelta: 22094, powerDelta: -150000, changedAlliance: false },
+        { id: "199310744", name28: "xXKatesXx", name31: "xXKatesXx", alliance31: "[WL20]WULCAN Legion", kps28: 20495950, kps31: 24407558, deads28: 267183, deads31: 441283, t4KillDelta: 321508, t5KillDelta: 34696, powerDelta: -150000, changedAlliance: false },
+        { id: "209527597", name28: "20 メKlee", name31: "20 メKlee", alliance31: "[KD20]PRIME LEGION", kps28: 30563842, kps31: 54006280, deads28: 697730, deads31: 745080, t4KillDelta: 1352077, t5KillDelta: 62854, powerDelta: -200000, changedAlliance: false },
+        { id: "209102596", name28: "20 メ MnTOoL", name31: "20 メ MnTOoL", alliance31: "-", kps28: 9357819, kps31: 9426789, deads28: 42646, deads31: 42646, t4KillDelta: 68970, t5KillDelta: 0, powerDelta: 0, changedAlliance: false },
+        { id: "204030053", name28: "20 メ JONGKENG", name31: "20 メ JONGKENG", alliance31: "[WL20]WULCAN Legion", kps28: 11386694, kps31: 12109944, deads28: 1245513, deads31: 1282042, t4KillDelta: 44291, t5KillDelta: 8687, powerDelta: -50000, changedAlliance: false },
+        { id: "209535696", name28: "20 メ KENZOOO", name31: "20 メ KENZOOO", alliance31: "-", kps28: 21908469, kps31: 21908469, deads28: 382756, deads31: 382756, t4KillDelta: 0, t5KillDelta: 0, powerDelta: 0, changedAlliance: false },
+        { id: "210078610", name28: "ᴬʳ lodbrog", name31: "ᴬʳ lodbrog", alliance31: "-", kps28: 5830631, kps31: 5830631, deads28: 24836, deads31: 24836, t4KillDelta: 0, t5KillDelta: 0, powerDelta: 0, changedAlliance: false },
+        { id: "210087986", name28: "Đế Thiêl", name31: "Đế Thiêl", alliance31: "[AL20]ARC LEGION", kps28: 4796877, kps31: 4796877, deads28: 822367, deads31: 822367, t4KillDelta: 0, t5KillDelta: 0, powerDelta: 0, changedAlliance: false },
+        { id: "207103333", name28: "Mfalme Mukdady", name31: "Mfalme Mukdady", alliance31: "[KD20]PRIME LEGION", kps28: 79181595, kps31: 86623095, deads28: 710372, deads31: 884217, t4KillDelta: 689022, t5KillDelta: 17120, powerDelta: -300000, changedAlliance: false },
+        { id: "210125257", name28: "infinition", name31: "infinition", alliance31: "[KD20]PRIME LEGION", kps28: 22379296, kps31: 29268153, deads28: 291382, deads31: 299603, t4KillDelta: 426609, t5KillDelta: 131025, powerDelta: -150000, changedAlliance: false },
+        { id: "209606723", name28: "20 メMinッ", name31: "20 メMinッ", alliance31: "[KD20]PRIME LEGION", kps28: 46247634, kps31: 46247634, deads28: 753214, deads31: 753214, t4KillDelta: 0, t5KillDelta: 0, powerDelta: 0, changedAlliance: false },
+        { id: "208593961", name28: "VNS メ Nam Long", name31: "VNS メ Nam Long", alliance31: "[KD20]PRIME LEGION", kps28: 5198367, kps31: 5533127, deads28: 397664, deads31: 406316, t4KillDelta: 34386, t5KillDelta: 1045, powerDelta: -50000, changedAlliance: false },
+        { id: "209942985", name28: "20 メ Dajana2301", name31: "20 メ Dajana2301", alliance31: "[KD20]PRIME LEGION", kps28: 6955668, kps31: 7053368, deads28: 495673, deads31: 495673, t4KillDelta: 5633, t5KillDelta: 0, powerDelta: 0, changedAlliance: false },
+        { id: "210088663", name28: "Manifestor", name31: "Manifestor", alliance31: "[KD20]PRIME LEGION", kps28: 7760011, kps31: 8040861, deads28: 722024, deads31: 722024, t4KillDelta: 19944, t5KillDelta: 4060, powerDelta: 0, changedAlliance: false },
+        { id: "209129365", name28: "Сява 26", name31: "Сява 26", alliance31: "-", kps28: 3257211, kps31: 3257211, deads28: 176177, deads31: 176177, t4KillDelta: 0, t5KillDelta: 0, powerDelta: 0, changedAlliance: false },
+        { id: "208160125", name28: "King GareT", name31: "King GareT", alliance31: "[KD20]PRIME LEGION", kps28: 26203851, kps31: 26203851, deads28: 1147122, deads31: 1147122, t4KillDelta: 0, t5KillDelta: 0, powerDelta: 0, changedAlliance: false },
+        { id: "202316248", name28: "A J L O U N I", name31: "A J L O U N I", alliance31: "[KD20]PRIME LEGION", kps28: 69975632, kps31: 79902265, deads28: 200436, deads31: 240160, t4KillDelta: 924479, t5KillDelta: 16538, powerDelta: -150000, changedAlliance: false },
+        { id: "208622098", name28: "Brown Bear l", name31: "Brown Bear l", alliance31: "[KD20]PRIME LEGION", kps28: 61053177, kps31: 65920277, deads28: 432482, deads31: 454335, t4KillDelta: 377926, t5KillDelta: 69790, powerDelta: -100000, changedAlliance: false },
+        { id: "209563664", name28: "20 メSmurfetta", name31: "20 メSmurfetta", alliance31: "[KD20]PRIME LEGION", kps28: 20973712, kps31: 24759696, deads28: 217527, deads31: 217527, t4KillDelta: 377429, t5KillDelta: 555, powerDelta: -50000, changedAlliance: false },
+        { id: "209529425", name28: "20 メ DarkCaT", name31: "20 メ DarkCaT", alliance31: "-", kps28: 19035764, kps31: 19035764, deads28: 412001, deads31: 412001, t4KillDelta: 0, t5KillDelta: 0, powerDelta: 0, changedAlliance: false },
+        { id: "210083306", name28: "20 メbraggi", name31: "20 メbraggi", alliance31: "[KD20]PRIME LEGION", kps28: 95279471, kps31: 104594370, deads28: 664669, deads31: 787842, t4KillDelta: 735549, t5KillDelta: 91250, powerDelta: -200000, changedAlliance: false },
+        { id: "210132631", name28: "20 メ Zergetto", name31: "20 メ Zergetto", alliance31: "[KD20]PRIME LEGION", kps28: 16303959, kps31: 18304394, deads28: 314441, deads31: 332708, t4KillDelta: 184094, t5KillDelta: 8074, powerDelta: -50000, changedAlliance: false },
+        { id: "210137469", name28: "Viryava", name31: "Viryava", alliance31: "[KD20]PRIME LEGION", kps28: 27618324, kps31: 40412818, deads28: 484817, deads31: 650002, t4KillDelta: 1146526, t5KillDelta: 49897, powerDelta: -200000, changedAlliance: false },
+        { id: "203245667", name28: "Cubii 様", name31: "Cubii 様", alliance31: "-", kps28: 48952586, kps31: 48952586, deads28: 1903430, deads31: 1903430, t4KillDelta: 0, t5KillDelta: 0, powerDelta: 0, changedAlliance: false },
+        { id: "207267731", name28: "ᵒᶜQolosoq", name31: "ᵒᶜQolosoq", alliance31: "-", kps28: 2510463, kps31: 2510463, deads28: 11573, deads31: 11573, t4KillDelta: 0, t5KillDelta: 0, powerDelta: 0, changedAlliance: false },
+        { id: "209526677", name28: "20 メJesterr", name31: "20 メJesterr", alliance31: "[KD20]PRIME LEGION", kps28: 28195729, kps31: 39835853, deads28: 687045, deads31: 868121, t4KillDelta: 968048, t5KillDelta: 91100, powerDelta: -200000, changedAlliance: false },
+        { id: "206581588", name28: "Xpapa10", name31: "Xpapa10", alliance31: "[KD20]PRIME LEGION", kps28: 2217782, kps31: 3240062, deads28: 134560, deads31: 144893, t4KillDelta: 102228, t5KillDelta: 0, powerDelta: -50000, changedAlliance: false },
+        { id: "210123187", name28: "ᴱᵂ MUP", name31: "ᴱᵂ MUP", alliance31: "-", kps28: 74953965, kps31: 74953965, deads28: 625571, deads31: 625571, t4KillDelta: 0, t5KillDelta: 0, powerDelta: 0, changedAlliance: false },
+        { id: "203962875", name28: "PUG THE WIZ", name31: "PUG THE WIZ", alliance31: "[WL20]WULCAN Legion", kps28: 9890045, kps31: 10749761, deads28: 1832341, deads31: 1850976, t4KillDelta: 81453, t5KillDelta: 2259, powerDelta: -50000, changedAlliance: false },
+        { id: "210110068", name28: "20 メalla Lord", name31: "20 メalla Lord", alliance31: "[KD20]PRIME LEGION", kps28: 14468939, kps31: 15284000, deads28: 425969, deads31: 517865, t4KillDelta: 33198, t5KillDelta: 24970, powerDelta: -100000, changedAlliance: false },
+        { id: "210085683", name28: "ᴱᵂMINA B1", name31: "ᴱᵂMINA B1", alliance31: "[WL20]WULCAN Legion", kps28: 19082985, kps31: 19082985, deads28: 283264, deads31: 283264, t4KillDelta: 0, t5KillDelta: 0, powerDelta: 0, changedAlliance: false },
+        { id: "209538707", name28: "20 メ suddenxgod", name31: "20 メ suddenxgod", alliance31: "-", kps28: 43317408, kps31: 43317408, deads28: 199688, deads31: 199688, t4KillDelta: 0, t5KillDelta: 0, powerDelta: 0, changedAlliance: false },
+        { id: "206950609", name28: "SirSmokeChronic", name31: "SirSmokeChronic", alliance31: "[WL20]WULCAN Legion", kps28: 12929305, kps31: 13242225, deads28: 577317, deads31: 652077, t4KillDelta: 18414, t5KillDelta: 6430, powerDelta: -50000, changedAlliance: false },
+        { id: "209598421", name28: "20 メSicilia", name31: "20 メSicilia", alliance31: "[KD20]PRIME LEGION", kps28: 61349806, kps31: 73679204, deads28: 571743, deads31: 766055, t4KillDelta: 1100367, t5KillDelta: 60848, powerDelta: -530822, changedAlliance: false },
+        { id: "209602386", name28: "20 メOMEGA", name31: "20 メOMEGA", alliance31: "[KD20]PRIME LEGION", kps28: 104943131, kps31: 115076153, deads28: 831223, deads31: 1129969, t4KillDelta: 749436, t5KillDelta: 129255, powerDelta: -954765, changedAlliance: true },
+        { id: "210079701", name28: "ebda19", name31: "ebda19", alliance31: "[KD20]PRIME LEGION", kps28: 1920816, kps31: 4501620, deads28: 323318, deads31: 352697, t4KillDelta: 243688, t5KillDelta: 6828, powerDelta: -331745, changedAlliance: true },
+        { id: "209561109", name28: "HaLuJaChiNa", name31: "HaLuJaChiNa", alliance31: "[KD20]PRIME LEGION", kps28: 39218874, kps31: 55048790, deads28: 438010, deads31: 712765, t4KillDelta: 1282151, t5KillDelta: 144646, powerDelta: -477633, changedAlliance: false }
+    ];
+
+    function formatNumber(num) {
+        return num.toLocaleString('it-IT');
+    }
+
+    function renderStats(player) {
+        const deltaKps = player.kps31 - player.kps28;
+        const deltaDeads = player.deads31 - player.deads28;
+        const powerChange = player.powerDelta;
+        
+        const allianceDisplay = player.changedAlliance ? 
+            `<span style="color:#fbbf24;">→ ${player.alliance31}</span>` : 
+            `<span>${player.alliance31}</span>`;
+
+        return `
+            <div class="stats-card">
+                <div class="player-header">
+                    <h2>${player.name31} <span style="font-size:0.9rem; color:#6c5ce7;">(ID: ${player.id})</span></h2>
+                    ${player.name28 !== player.name31 ? `<p>ex: ${player.name28}</p>` : ''}
+                </div>
+                <table>
+                    <tr><td class="stat-label">Killpoints (28/03)</td><td class="stat-value">${formatNumber(player.kps28)}</td></tr>
+                    <tr><td class="stat-label">Killpoints (31/03)</td><td class="stat-value">${formatNumber(player.kps31)}</td></tr>
+                    <tr><td class="stat-label">Δ Killpoints</td><td class="stat-value ${deltaKps >= 0 ? 'positive' : 'negative'}">${deltaKps >= 0 ? '+' : ''}${formatNumber(deltaKps)}</td></tr>
+                    <tr><td class="stat-label">Deads (28/03)</td><td class="stat-value">${formatNumber(player.deads28)}</td></tr>
+                    <tr><td class="stat-label">Deads (31/03)</td><td class="stat-value">${formatNumber(player.deads31)}</td></tr>
+                    <tr><td class="stat-label">Δ Deads</td><td class="stat-value ${deltaDeads <= 0 ? 'positive' : 'negative'}">${deltaDeads >= 0 ? '+' : ''}${formatNumber(deltaDeads)}</td></tr>
+                    <tr><td class="stat-label">T4 Kills (Δ)</td><td class="stat-value positive">+${formatNumber(player.t4KillDelta)}</td></tr>
+                    <tr><td class="stat-label">T5 Kills (Δ)</td><td class="stat-value positive">+${formatNumber(player.t5KillDelta)}</td></tr>
+                    <tr><td class="stat-label">Alleanza (31/03)</td><td class="stat-value">${allianceDisplay}</td></tr>
+                    <tr><td class="stat-label">Δ Power</td><td class="stat-value ${powerChange <= 0 ? 'negative' : 'positive'}">${powerChange >= 0 ? '+' : ''}${formatNumber(powerChange)}</td></tr>
+                </table>
+            </div>
+        `;
+    }
+
+    function searchPlayer() {
+        const input = document.getElementById('playerNameInput').value.trim();
+        const resultDiv = document.getElementById('resultArea');
+        
+        if (input === "") {
+            resultDiv.innerHTML = `<div class="stats-card"><div class="no-result">✦ Inserisci un nome o ID ✦</div></div>`;
+            return;
+        }
+
+        const lowerInput = input.toLowerCase();
+        const found = playersData.find(p => 
+            p.id === input || 
+            p.name28.toLowerCase() === lowerInput || 
+            p.name31.toLowerCase() === lowerInput ||
+            p.name28.toLowerCase().includes(lowerInput) ||
+            p.name31.toLowerCase().includes(lowerInput)
+        );
+
+        if (found) {
+            resultDiv.innerHTML = renderStats(found);
+        } else {
+            resultDiv.innerHTML = `<div class="stats-card"><div class="no-result">⚠️ Nessun giocatore trovato per "${escapeHtml(input)}"<br><span style="font-size:0.8rem;">Prova con ID, nome esatto o parte del nome</span></div></div>`;
+        }
+    }
+
+    function escapeHtml(str) {
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    document.getElementById('searchBtn').addEventListener('click', searchPlayer);
+    document.getElementById('playerNameInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') searchPlayer();
+    });
+</script>
+</body>
+</html>
